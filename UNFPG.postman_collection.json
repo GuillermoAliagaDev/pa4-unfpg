@@ -1,0 +1,585 @@
+{
+  "info": {
+    "name": "PA4 UNFPG",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "id",
+      "value": "1"
+    },
+    {
+      "key": "documento",
+      "value": "98765432"
+    }
+  ],
+  "item": [
+    {
+      "name": "academico",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8083/api/matriculas",
+            "header": []
+          }
+        },
+        {
+          "name": "Registrar",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8083/api/matriculas",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codalu\": 1,\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": 2,\n  \"obsmat\": \"Prueba PA4\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().nummat);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8083/api/matriculas/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8083/api/matriculas/{{id}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codalu\": 1,\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": 2,\n  \"obsmat\": \"Prueba PA4\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Deshabilitar",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8083/api/matriculas/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Habilitar",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8083/api/matriculas/{{id}}/habilitar",
+            "header": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "financiero",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8084/api/ordenes-pago",
+            "header": []
+          }
+        },
+        {
+          "name": "Registrar",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8084/api/ordenes-pago",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecordpag\": \"2026-11-25T10:00:00\",\n  \"monto\": 120,\n  \"nummat\": 1,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codordpag);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8084/api/ordenes-pago/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8084/api/ordenes-pago/{{id}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecordpag\": \"2026-11-25T10:00:00\",\n  \"monto\": 120,\n  \"nummat\": 1,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Deshabilitar",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8084/api/ordenes-pago/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Habilitar",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8084/api/ordenes-pago/{{id}}/habilitar",
+            "header": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "biblioteca",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8082/api/libros",
+            "header": []
+          }
+        },
+        {
+          "name": "Registrar",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8082/api/libros",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titlib\": \"Libro PA4\",\n  \"autlib\": \"Autor prueba\",\n  \"codcatl\": 1,\n  \"codedi\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codlib);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8082/api/libros/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8082/api/libros/{{id}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titlib\": \"Libro PA4\",\n  \"autlib\": \"Autor prueba\",\n  \"codcatl\": 1,\n  \"codedi\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Deshabilitar",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8082/api/libros/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Habilitar",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8082/api/libros/{{id}}/habilitar",
+            "header": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "aula-virtual",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8085/api/evaluaciones",
+            "header": []
+          }
+        },
+        {
+          "name": "Registrar",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8085/api/evaluaciones",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeval\": \"Evaluacion PA4\",\n  \"feceval\": \"2026-11-25T10:00:00\",\n  \"codcurl\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codeval);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8085/api/evaluaciones/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8085/api/evaluaciones/{{id}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomeval\": \"Evaluacion PA4\",\n  \"feceval\": \"2026-11-25T10:00:00\",\n  \"codcurl\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Deshabilitar",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8085/api/evaluaciones/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Habilitar",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8085/api/evaluaciones/{{id}}/habilitar",
+            "header": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "persona",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8081/api/alumnos",
+            "header": []
+          }
+        },
+        {
+          "name": "Registrar",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8081/api/alumnos",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomalu\": \"Prueba\",\n  \"apepalu\": \"PA4\",\n  \"apemalu\": \"Demo\",\n  \"fecnac\": \"2000-01-01\",\n  \"numdoc\": \"{{documento}}\",\n  \"nacalu\": \"Peruana\",\n  \"diralu\": \"Lima\",\n  \"coralu\": \"{{documento}}@example.com\",\n  \"coddis\": 1,\n  \"codsex\": 1,\n  \"codtipd\": 1,\n  \"codestc\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codalu);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8081/api/alumnos/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8081/api/alumnos/{{id}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomalu\": \"Prueba\",\n  \"apepalu\": \"PA4\",\n  \"apemalu\": \"Demo\",\n  \"fecnac\": \"2000-01-01\",\n  \"numdoc\": \"{{documento}}\",\n  \"nacalu\": \"Peruana\",\n  \"diralu\": \"Lima\",\n  \"coralu\": \"{{documento}}@example.com\",\n  \"coddis\": 1,\n  \"codsex\": 1,\n  \"codtipd\": 1,\n  \"codestc\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Deshabilitar",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8081/api/alumnos/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Habilitar",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8081/api/alumnos/{{id}}/habilitar",
+            "header": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "seguridad",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8086/api/roles",
+            "header": []
+          }
+        },
+        {
+          "name": "Registrar",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8086/api/roles",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomrol\": \"Rol {{documento}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codrol);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8086/api/roles/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8086/api/roles/{{id}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomrol\": \"Rol {{documento}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Deshabilitar",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8086/api/roles/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Habilitar",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8086/api/roles/{{id}}/habilitar",
+            "header": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "catalogo",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8087/api/estados-pago",
+            "header": []
+          }
+        },
+        {
+          "name": "Registrar",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8087/api/estados-pago",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomestp\": \"Prueba {{documento}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codestp);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8087/api/estados-pago/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8087/api/estados-pago/{{id}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomestp\": \"Prueba {{documento}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Deshabilitar",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8087/api/estados-pago/{{id}}",
+            "header": []
+          }
+        },
+        {
+          "name": "Habilitar",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8087/api/estados-pago/{{id}}/habilitar",
+            "header": []
+          }
+        }
+      ]
+    }
+  ]
+}
