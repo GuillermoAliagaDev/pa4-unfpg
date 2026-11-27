@@ -1,0 +1,5 @@
+package pe.edu.isil.plaza_logistica_service;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SucursalRepository extends JpaRepository<Sucursal, Integer> {
+}
