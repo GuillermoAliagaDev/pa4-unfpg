@@ -1,5 +1,6 @@
 package pe.edu.isil.libro_service.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +34,20 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.toList());
         return construirRespuesta(HttpStatus.BAD_REQUEST, "Error de validacion", request, detalles);
+    }
+
+    // Respeta el codigo de las ResponseStatusException (por ejemplo, 404)
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Object> handleResponseStatus(ResponseStatusException ex, WebRequest request) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        return construirRespuesta(status, ex.getReason(), request, null);
+    }
+
+    // 409 - Datos duplicados, incompletos o referencia invalida
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleIntegrity(DataIntegrityViolationException ex, WebRequest request) {
+        return construirRespuesta(HttpStatus.CONFLICT,
+                "Datos duplicados, incompletos o referencia invalida", request, null);
     }
 
     @ExceptionHandler(Exception.class)
