@@ -1,9 +1,14 @@
 {
   "info": {
     "name": "PA4 UNFPG",
+    "description": "Todas las peticiones pasan por el API Gateway (http://localhost:8000). Incluye CRUD por microservicio, integraciones OpenFeign y manejo de errores. Ejecutar en orden.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
+    {
+      "key": "gateway",
+      "value": "http://localhost:8000"
+    },
     {
       "key": "id",
       "value": "1"
@@ -11,6 +16,18 @@
     {
       "key": "documento",
       "value": "98765432"
+    },
+    {
+      "key": "mat_alu",
+      "value": "1"
+    },
+    {
+      "key": "mat_per",
+      "value": "2"
+    },
+    {
+      "key": "u_feign",
+      "value": "10000001"
     }
   ],
   "item": [
@@ -21,32 +38,77 @@
           "name": "Listar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8083/api/matriculas",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/matriculas"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8083/api/matriculas",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/matriculas",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"codalu\": 1,\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": 2,\n  \"obsmat\": \"Prueba PA4\"\n}"
+              "raw": "{\n  \"codalu\": {{mat_alu}},\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": {{mat_per}},\n  \"obsmat\": \"Prueba PA4\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const gw = pm.collectionVariables.get('gateway');",
+                  "pm.sendRequest(gw + '/api/alumnos', function (e1, r1) {",
+                  "  pm.sendRequest(gw + '/api/matriculas', function (e2, r2) {",
+                  "    const usadas = r2.json().map(function (m) { return m.codalu + '-' + m.codper; });",
+                  "    const alumnos = r1.json().filter(function (a) { return a.estalu && a.codalu !== 3; });",
+                  "    for (const per of [2, 1]) {",
+                  "      for (const a of alumnos) {",
+                  "        if (usadas.indexOf(a.codalu + '-' + per) === -1) {",
+                  "          pm.collectionVariables.set('mat_alu', String(a.codalu));",
+                  "          pm.collectionVariables.set('mat_per', String(per));",
+                  "          return;",
+                  "        }",
+                  "      }",
+                  "    }",
+                  "    console.log('No quedan alumnos sin matricula: vuelve a cargar la base de datos');",
+                  "  });",
+                  "});"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().nummat);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().nummat));",
+                  "}"
                 ]
               }
             }
@@ -56,42 +118,101 @@
           "name": "Buscar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8083/api/matriculas/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/matriculas/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8083/api/matriculas/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/matriculas/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"codalu\": 1,\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": 2,\n  \"obsmat\": \"Prueba PA4\"\n}"
+              "raw": "{\n  \"codalu\": {{mat_alu}},\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": {{mat_per}},\n  \"obsmat\": \"Matricula actualizada PA4\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8083/api/matriculas/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/matriculas/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8083/api/matriculas/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/matriculas/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -102,32 +223,61 @@
           "name": "Listar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8084/api/ordenes-pago",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/ordenes-pago"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8084/api/ordenes-pago",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/ordenes-pago",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fecordpag\": \"2026-11-25T10:00:00\",\n  \"monto\": 120,\n  \"nummat\": 1,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}"
+              "raw": "{\n  \"fecordpag\": \"2026-11-25T10:00:00\",\n  \"monto\": 120,\n  \"nummat\": 1,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_ordenes_pago', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codordpag);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codordpag));",
+                  "}"
                 ]
               }
             }
@@ -137,42 +287,101 @@
           "name": "Buscar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8084/api/ordenes-pago/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/ordenes-pago/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8084/api/ordenes-pago/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/ordenes-pago/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fecordpag\": \"2026-11-25T10:00:00\",\n  \"monto\": 120,\n  \"nummat\": 1,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}"
+              "raw": "{\n  \"fecordpag\": \"2026-11-25T10:00:00\",\n  \"monto\": 150,\n  \"nummat\": 1,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8084/api/ordenes-pago/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/ordenes-pago/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8084/api/ordenes-pago/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/ordenes-pago/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -183,32 +392,61 @@
           "name": "Listar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8082/api/libros",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/libros"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8082/api/libros",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/libros",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titlib\": \"Libro PA4\",\n  \"autlib\": \"Autor prueba\",\n  \"codcatl\": 1,\n  \"codedi\": 1\n}"
+              "raw": "{\n  \"titlib\": \"Libro PA4\",\n  \"autlib\": \"Autor prueba\",\n  \"codcatl\": 1,\n  \"codedi\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_libros', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codlib);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codlib));",
+                  "}"
                 ]
               }
             }
@@ -218,42 +456,101 @@
           "name": "Buscar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8082/api/libros/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/libros/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8082/api/libros/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/libros/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titlib\": \"Libro PA4\",\n  \"autlib\": \"Autor prueba\",\n  \"codcatl\": 1,\n  \"codedi\": 1\n}"
+              "raw": "{\n  \"titlib\": \"Libro PA4\",\n  \"autlib\": \"Autor actualizado\",\n  \"codcatl\": 1,\n  \"codedi\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8082/api/libros/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/libros/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8082/api/libros/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/libros/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -264,32 +561,61 @@
           "name": "Listar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8085/api/evaluaciones",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/evaluaciones"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8085/api/evaluaciones",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/evaluaciones",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomeval\": \"Evaluacion PA4\",\n  \"feceval\": \"2026-11-25T10:00:00\",\n  \"codcurl\": 1\n}"
+              "raw": "{\n  \"nomeval\": \"Evaluacion PA4\",\n  \"feceval\": \"2026-11-25T10:00:00\",\n  \"codcurl\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_evaluaciones', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codeval);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codeval));",
+                  "}"
                 ]
               }
             }
@@ -299,42 +625,101 @@
           "name": "Buscar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8085/api/evaluaciones/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/evaluaciones/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8085/api/evaluaciones/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/evaluaciones/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomeval\": \"Evaluacion PA4\",\n  \"feceval\": \"2026-11-25T10:00:00\",\n  \"codcurl\": 1\n}"
+              "raw": "{\n  \"nomeval\": \"Evaluacion actualizada\",\n  \"feceval\": \"2026-11-25T10:00:00\",\n  \"codcurl\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8085/api/evaluaciones/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/evaluaciones/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8085/api/evaluaciones/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/evaluaciones/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -345,32 +730,61 @@
           "name": "Listar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8081/api/alumnos",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/alumnos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8081/api/alumnos",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/alumnos",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomalu\": \"Prueba\",\n  \"apepalu\": \"PA4\",\n  \"apemalu\": \"Demo\",\n  \"fecnac\": \"2000-01-01\",\n  \"numdoc\": \"{{documento}}\",\n  \"nacalu\": \"Peruana\",\n  \"diralu\": \"Lima\",\n  \"coralu\": \"{{documento}}@example.com\",\n  \"coddis\": 1,\n  \"codsex\": 1,\n  \"codtipd\": 1,\n  \"codestc\": 1\n}"
+              "raw": "{\n  \"nomalu\": \"Prueba\",\n  \"apepalu\": \"PA4\",\n  \"apemalu\": \"Demo\",\n  \"fecnac\": \"2000-01-01\",\n  \"numdoc\": \"{{u_alumnos}}\",\n  \"nacalu\": \"Peruana\",\n  \"diralu\": \"Lima\",\n  \"coralu\": \"pa4.{{u_alumnos}}@example.com\",\n  \"coddis\": 1,\n  \"codsex\": 1,\n  \"codtipd\": 1,\n  \"codestc\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_alumnos', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codalu);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codalu));",
+                  "}"
                 ]
               }
             }
@@ -380,42 +794,101 @@
           "name": "Buscar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8081/api/alumnos/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/alumnos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8081/api/alumnos/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/alumnos/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomalu\": \"Prueba\",\n  \"apepalu\": \"PA4\",\n  \"apemalu\": \"Demo\",\n  \"fecnac\": \"2000-01-01\",\n  \"numdoc\": \"{{documento}}\",\n  \"nacalu\": \"Peruana\",\n  \"diralu\": \"Lima\",\n  \"coralu\": \"{{documento}}@example.com\",\n  \"coddis\": 1,\n  \"codsex\": 1,\n  \"codtipd\": 1,\n  \"codestc\": 1\n}"
+              "raw": "{\n  \"nomalu\": \"Prueba\",\n  \"apepalu\": \"PA4\",\n  \"apemalu\": \"Demo\",\n  \"fecnac\": \"2000-01-01\",\n  \"numdoc\": \"{{u_alumnos}}\",\n  \"nacalu\": \"Peruana\",\n  \"diralu\": \"Av. Actualizada 123\",\n  \"coralu\": \"pa4.{{u_alumnos}}@example.com\",\n  \"coddis\": 1,\n  \"codsex\": 1,\n  \"codtipd\": 1,\n  \"codestc\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8081/api/alumnos/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/alumnos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8081/api/alumnos/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/alumnos/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -426,32 +899,61 @@
           "name": "Listar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8086/api/roles",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/roles"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8086/api/roles",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/roles",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomrol\": \"Rol {{documento}}\"\n}"
+              "raw": "{\n  \"nomrol\": \"Rol {{u_roles}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_roles', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codrol);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codrol));",
+                  "}"
                 ]
               }
             }
@@ -461,42 +963,101 @@
           "name": "Buscar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8086/api/roles/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/roles/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8086/api/roles/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/roles/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomrol\": \"Rol {{documento}}\"\n}"
+              "raw": "{\n  \"nomrol\": \"Rol editado {{u_roles}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8086/api/roles/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/roles/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8086/api/roles/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/roles/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -507,32 +1068,61 @@
           "name": "Listar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8087/api/estados-pago",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/estados-pago"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8087/api/estados-pago",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/estados-pago",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomestp\": \"Prueba {{documento}}\"\n}"
+              "raw": "{\n  \"nomestp\": \"Prueba {{u_estados_pago}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_estados_pago', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codestp);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codestp));",
+                  "}"
                 ]
               }
             }
@@ -542,42 +1132,720 @@
           "name": "Buscar",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8087/api/estados-pago/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/estados-pago/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8087/api/estados-pago/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/estados-pago/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomestp\": \"Prueba {{documento}}\"\n}"
+              "raw": "{\n  \"nomestp\": \"Estado editado {{u_estados_pago}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8087/api/estados-pago/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/estados-pago/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8087/api/estados-pago/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/estados-pago/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OpenFeign",
+      "item": [
+        {
+          "name": "Matricula (Academico consulta Persona)",
+          "item": [
+            {
+              "name": "1. Dato valido (201)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/matriculas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"obsmat\": \"Matricula OpenFeign\",\n  \"codalu\": {{mat_alu}},\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": {{mat_per}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const gw = pm.collectionVariables.get('gateway');",
+                      "pm.sendRequest(gw + '/api/alumnos', function (e1, r1) {",
+                      "  pm.sendRequest(gw + '/api/matriculas', function (e2, r2) {",
+                      "    const usadas = r2.json().map(function (m) { return m.codalu + '-' + m.codper; });",
+                      "    const alumnos = r1.json().filter(function (a) { return a.estalu && a.codalu !== 3; });",
+                      "    for (const per of [2, 1]) {",
+                      "      for (const a of alumnos) {",
+                      "        if (usadas.indexOf(a.codalu + '-' + per) === -1) {",
+                      "          pm.collectionVariables.set('mat_alu', String(a.codalu));",
+                      "          pm.collectionVariables.set('mat_per', String(per));",
+                      "          return;",
+                      "        }",
+                      "      }",
+                      "    }",
+                      "    console.log('No quedan alumnos sin matricula: vuelve a cargar la base de datos');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', function () { pm.response.to.have.status(201); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Dato inexistente (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/matriculas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"obsmat\": \"Matricula OpenFeign\",\n  \"codalu\": 999999,\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3. Deshabilitar el dato consultado",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{gateway}}/api/alumnos/3"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "4. Intentar con el dato deshabilitado (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/matriculas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"obsmat\": \"Matricula OpenFeign\",\n  \"codalu\": 3,\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "5. Volver a habilitar",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{gateway}}/api/alumnos/3/habilitar"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Prestamo (Biblioteca consulta Persona)",
+          "item": [
+            {
+              "name": "1. Dato valido (201)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/prestamos",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecpre\": \"2026-11-27\",\n  \"devpre\": false,\n  \"codalu\": 1,\n  \"codeje\": 2,\n  \"codestl\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', function () { pm.response.to.have.status(201); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Dato inexistente (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/prestamos",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecpre\": \"2026-11-27\",\n  \"devpre\": false,\n  \"codalu\": 999999,\n  \"codeje\": 2,\n  \"codestl\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3. Deshabilitar el dato consultado",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{gateway}}/api/alumnos/3"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "4. Intentar con el dato deshabilitado (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/prestamos",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecpre\": \"2026-11-27\",\n  \"devpre\": false,\n  \"codalu\": 3,\n  \"codeje\": 2,\n  \"codestl\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "5. Volver a habilitar",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{gateway}}/api/alumnos/3/habilitar"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Orden de pago (Financiero consulta Academico)",
+          "item": [
+            {
+              "name": "1. Dato valido (201)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/ordenes-pago",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecordpag\": \"2026-11-27T10:00:00\",\n  \"monto\": 100,\n  \"nummat\": 1,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', function () { pm.response.to.have.status(201); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Dato inexistente (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/ordenes-pago",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecordpag\": \"2026-11-27T10:00:00\",\n  \"monto\": 100,\n  \"nummat\": 999999,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3. Deshabilitar el dato consultado",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{gateway}}/api/matriculas/4"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "4. Intentar con el dato deshabilitado (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/ordenes-pago",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecordpag\": \"2026-11-27T10:00:00\",\n  \"monto\": 100,\n  \"nummat\": 4,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "5. Volver a habilitar",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{gateway}}/api/matriculas/4/habilitar"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Manejo de errores",
+      "item": [
+        {
+          "name": "Alumno que no existe (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/alumnos/999999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Matricula que no existe (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/matriculas/999999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Matricula duplicada (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/matriculas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"obsmat\": \"Duplicada\",\n  \"codalu\": 1,\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Prestamo sin alumno (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/prestamos",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

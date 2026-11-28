@@ -1,0 +1,145 @@
+{
+  "info": {
+    "name": "PA4 Plaza Megacentimetros - Servicio apagado",
+    "description": "Apagar SOLO el microservicio indicado, enviar su peticion (debe responder 503) y volver a encenderlo. No usar Run collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway",
+      "value": "http://localhost:8090"
+    },
+    {
+      "key": "u_feign",
+      "value": "20000002"
+    }
+  ],
+  "item": [
+    {
+      "name": "Apagar Cliente (8091) y registrar venta (503)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{gateway}}/api/ventas",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"numcom\": \"B-{{u_feign}}\",\n  \"fecven\": \"2026-11-27T12:00:00\",\n  \"codcli\": 1,\n  \"codemp\": 2,\n  \"codmetp\": 1,\n  \"totven\": 49.56\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 503', function () { pm.response.to.have.status(503); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Apagar Producto (8092) y registrar detalle de venta (503)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{gateway}}/api/detalles-venta",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codven\": 1,\n  \"codpro\": 1,\n  \"candetv\": 1,\n  \"preundetv\": 6.8,\n  \"subdetv\": 6.8\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 503', function () { pm.response.to.have.status(503); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Apagar Ventas (8093) y registrar pago (503)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{gateway}}/api/pagos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"numpag\": \"PAG-{{u_feign}}\",\n  \"codped\": 1,\n  \"codmetp\": 1,\n  \"monpag\": 1,\n  \"fecpag\": \"2026-11-27T15:00:00\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 503', function () { pm.response.to.have.status(503); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

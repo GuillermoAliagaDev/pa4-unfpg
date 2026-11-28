@@ -1,0 +1,145 @@
+{
+  "info": {
+    "name": "PA4 UNFPG - Servicio apagado",
+    "description": "Apagar SOLO el microservicio indicado, enviar su peticion (debe responder 503) y volver a encenderlo. No usar Run collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "u_feign",
+      "value": "20000002"
+    }
+  ],
+  "item": [
+    {
+      "name": "Apagar Persona (8081) y registrar matricula (503)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{gateway}}/api/matriculas",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"obsmat\": \"x\",\n  \"codalu\": 1,\n  \"codestm\": 1,\n  \"codtipm\": 1,\n  \"codper\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 503', function () { pm.response.to.have.status(503); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Apagar Persona (8081) y registrar prestamo (503)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{gateway}}/api/prestamos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fecpre\": \"2026-11-27\",\n  \"devpre\": false,\n  \"codalu\": 1,\n  \"codeje\": 2,\n  \"codestl\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 503', function () { pm.response.to.have.status(503); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Apagar Academico (8083) y registrar orden de pago (503)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{gateway}}/api/ordenes-pago",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fecordpag\": \"2026-11-27T10:00:00\",\n  \"monto\": 100,\n  \"nummat\": 1,\n  \"codconp\": 1,\n  \"codmetp\": 1,\n  \"codestp\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 503', function () { pm.response.to.have.status(503); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,14 +1,33 @@
 {
   "info": {
     "name": "PA4 Plaza Megacentimetros",
-    "description": "Colección completa de pruebas REST para los microservicios de Plaza Megacentímetros S.A.C. - Proceso de Aprendizaje 4 (PA4)",
+    "description": "Todas las peticiones pasan por el API Gateway (http://localhost:8090). Incluye CRUD por microservicio, integraciones OpenFeign y manejo de errores. Ejecutar en orden.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
+      "key": "gateway",
+      "value": "http://localhost:8090"
+    },
+    {
       "key": "id",
-      "value": "1",
-      "type": "string"
+      "value": "1"
+    },
+    {
+      "key": "documento",
+      "value": "98765432"
+    },
+    {
+      "key": "mat_alu",
+      "value": "1"
+    },
+    {
+      "key": "mat_per",
+      "value": "2"
+    },
+    {
+      "key": "u_feign",
+      "value": "10000001"
     }
   ],
   "item": [
@@ -19,32 +38,61 @@
           "name": "Listar cliente",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8091/api/clientes",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/clientes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar cliente",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8091/api/clientes",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/clientes",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomcli\": \"Fernando Andres\",\n  \"apecli\": \"Gutierrez Morales\",\n  \"numdoc\": \"48921578\",\n  \"codtipd\": 1,\n  \"telcli\": \"981234567\",\n  \"corcli\": \"fernando.gutierrez@gmail.com\",\n  \"dircli\": \"Av. Arequipa 2450, Lince\"\n}"
+              "raw": "{\n  \"nomcli\": \"Fernando Andres\",\n  \"apecli\": \"Gutierrez Morales\",\n  \"numdoc\": \"{{u_clientes}}\",\n  \"codtipd\": 1,\n  \"telcli\": \"981234567\",\n  \"corcli\": \"pa4.{{u_clientes}}@example.com\",\n  \"dircli\": \"Av. Arequipa 2450, Lince\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_clientes', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codcli);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codcli));",
+                  "}"
                 ]
               }
             }
@@ -54,73 +102,161 @@
           "name": "Buscar cliente por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8091/api/clientes/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/clientes/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar cliente",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8091/api/clientes/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/clientes/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomcli\": \"Fernando Andres\",\n  \"apecli\": \"Gutierrez Morales\",\n  \"numdoc\": \"48921578\",\n  \"codtipd\": 1,\n  \"telcli\": \"999888777\",\n  \"corcli\": \"fernando.gutierrez.actualizado@gmail.com\",\n  \"dircli\": \"Av. Arequipa 2500, Lince\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar cliente (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8091/api/clientes/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar cliente",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8091/api/clientes/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar tipodocumento",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8091/api/tipodocumento",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar tipodocumento",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8091/api/tipodocumento",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"nomcli\": \"Fernando Andres\",\n  \"apecli\": \"Gutierrez Morales\",\n  \"numdoc\": \"{{u_clientes}}\",\n  \"codtipd\": 1,\n  \"telcli\": \"999888777\",\n  \"corcli\": \"pa4.{{u_clientes}}@example.com\",\n  \"dircli\": \"Av. Arequipa 2500, Lince\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nomtipd\": \"Permiso Temporal\"\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codtipd);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar cliente (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/clientes/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar cliente",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/clientes/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar tipodocumento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/tipodocumento"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar tipodocumento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/tipodocumento",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomtipd\": \"Permiso Temporal {{u_tipodocumento}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_tipodocumento', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codtipd));",
+                  "}"
                 ]
               }
             }
@@ -130,42 +266,101 @@
           "name": "Buscar tipodocumento por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8091/api/tipodocumento/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/tipodocumento/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar tipodocumento",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8091/api/tipodocumento/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/tipodocumento/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomtipd\": \"Permiso Temporal de Permanencia (PTP)\"\n}"
+              "raw": "{\n  \"nomtipd\": \"Permiso Temporal de Permanenci {{u_tipodocumento}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar tipodocumento (Baja Logica)",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8091/api/tipodocumento/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/tipodocumento/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar tipodocumento",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8091/api/tipodocumento/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/tipodocumento/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -176,32 +371,61 @@
           "name": "Listar producto",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8092/api/productos",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/productos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar producto",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8092/api/productos",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/productos",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nompro\": \"Fideos Don Vittorio Spaguetti 500g\",\n  \"despro\": \"Pasta de trigo seleccionada\",\n  \"prepro\": 4.5,\n  \"stopro\": 200,\n  \"codcat\": 1,\n  \"codprv\": 2\n}"
+              "raw": "{\n  \"nompro\": \"Fideos Don Vittorio Spaguetti 500g\",\n  \"despro\": \"Pasta de trigo seleccionada\",\n  \"prepro\": 4.5,\n  \"stopro\": 200,\n  \"codcat\": 1,\n  \"codprv\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_productos', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codpro);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codpro));",
+                  "}"
                 ]
               }
             }
@@ -211,73 +435,161 @@
           "name": "Buscar producto por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8092/api/productos/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/productos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar producto",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8092/api/productos/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/productos/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nompro\": \"Fideos Don Vittorio Spaguetti 500g Extra\",\n  \"despro\": \"Pasta de s\\u00e9mola fortificada\",\n  \"prepro\": 4.8,\n  \"stopro\": 190,\n  \"codcat\": 1,\n  \"codprv\": 2\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar producto (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8092/api/productos/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar producto",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8092/api/productos/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar categoria",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8092/api/categorias",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar categoria",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8092/api/categorias",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"nompro\": \"Fideos Don Vittorio Spaguetti 500g Extra\",\n  \"despro\": \"Pasta de sémola fortificada\",\n  \"prepro\": 4.8,\n  \"stopro\": 190,\n  \"codcat\": 1,\n  \"codprv\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nomcat\": \"Panader\\u00eda y Pasteler\\u00eda\",\n  \"descat\": \"Panes artesanales, tortas y postres frescos\"\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codcat);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar producto (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/productos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar producto",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/productos/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar categoria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/categorias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar categoria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/categorias",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomcat\": \"Panadería y Pastelería {{u_categorias}}\",\n  \"descat\": \"Panes artesanales, tortas y postres frescos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_categorias', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codcat));",
+                  "}"
                 ]
               }
             }
@@ -287,42 +599,101 @@
           "name": "Buscar categoria por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8092/api/categorias/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/categorias/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar categoria",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8092/api/categorias/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/categorias/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomcat\": \"Panader\\u00eda y Pasteler\\u00eda Fina\",\n  \"descat\": \"Panes franceses, baguettes y dulces finos\"\n}"
+              "raw": "{\n  \"nomcat\": \"Panadería y Pastelería Fina {{u_categorias}}\",\n  \"descat\": \"Panes franceses, baguettes y dulces finos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar categoria (Baja Logica)",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8092/api/categorias/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/categorias/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar categoria",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8092/api/categorias/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/categorias/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -333,32 +704,61 @@
           "name": "Listar pedido",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8093/api/pedidos",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/pedidos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar pedido",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8093/api/pedidos",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/pedidos",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numped\": \"PED-2026-9099\",\n  \"fecped\": \"2026-11-26T12:00:00\",\n  \"codcli\": 1,\n  \"codpro\": 1,\n  \"codmetp\": 4,\n  \"canped\": 10,\n  \"preuni\": 4.2,\n  \"subtot\": 42.0,\n  \"igv\": 7.56,\n  \"totped\": 49.56,\n  \"obsped\": \"Pedido online con entrega programada\"\n}"
+              "raw": "{\n  \"numped\": \"PED-{{u_pedidos}}\",\n  \"fecped\": \"2026-11-26T12:00:00\",\n  \"codcli\": 1,\n  \"codpro\": 1,\n  \"codmetp\": 4,\n  \"canped\": 10,\n  \"preuni\": 4.2,\n  \"subtot\": 42,\n  \"igv\": 7.56,\n  \"totped\": 49.56,\n  \"obsped\": \"Pedido online con entrega programada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_pedidos', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codped);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codped));",
+                  "}"
                 ]
               }
             }
@@ -368,73 +768,161 @@
           "name": "Buscar pedido por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8093/api/pedidos/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/pedidos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar pedido",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8093/api/pedidos/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/pedidos/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numped\": \"PED-2026-9099\",\n  \"fecped\": \"2026-11-26T12:00:00\",\n  \"codcli\": 1,\n  \"codpro\": 1,\n  \"codmetp\": 4,\n  \"canped\": 12,\n  \"preuni\": 4.2,\n  \"subtot\": 50.4,\n  \"igv\": 9.07,\n  \"totped\": 59.47,\n  \"obsped\": \"Pedido actualizado con 2 unidades adicionales\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar pedido (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8093/api/pedidos/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar pedido",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8093/api/pedidos/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar venta",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8093/api/ventas",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar venta",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8093/api/ventas",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"numped\": \"PED-{{u_pedidos}}\",\n  \"fecped\": \"2026-11-26T12:00:00\",\n  \"codcli\": 1,\n  \"codpro\": 1,\n  \"codmetp\": 4,\n  \"canped\": 12,\n  \"preuni\": 4.2,\n  \"subtot\": 50.4,\n  \"igv\": 9.07,\n  \"totped\": 59.47,\n  \"obsped\": \"Pedido actualizado con 2 unidades adicionales\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"numcom\": \"B001-00009999\",\n  \"fecven\": \"2026-11-26T12:05:00\",\n  \"codcli\": 1,\n  \"codemp\": 2,\n  \"codmetp\": 4,\n  \"totven\": 49.56\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codven);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar pedido (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/pedidos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar pedido",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/pedidos/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar venta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ventas"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar venta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/ventas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numcom\": \"B-{{u_ventas}}\",\n  \"fecven\": \"2026-11-26T12:05:00\",\n  \"codcli\": 1,\n  \"codemp\": 2,\n  \"codmetp\": 4,\n  \"totven\": 49.56\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_ventas', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codven));",
+                  "}"
                 ]
               }
             }
@@ -444,73 +932,161 @@
           "name": "Buscar venta por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8093/api/ventas/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/ventas/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar venta",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8093/api/ventas/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/ventas/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numcom\": \"B001-00009999\",\n  \"fecven\": \"2026-11-26T12:05:00\",\n  \"codcli\": 1,\n  \"codemp\": 2,\n  \"codmetp\": 4,\n  \"totven\": 59.47\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar venta (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8093/api/ventas/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar venta",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8093/api/ventas/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar detalle_venta",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8093/api/detalles-venta",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar detalle_venta",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8093/api/detalles-venta",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"numcom\": \"B-{{u_ventas}}\",\n  \"fecven\": \"2026-11-26T12:05:00\",\n  \"codcli\": 1,\n  \"codemp\": 2,\n  \"codmetp\": 4,\n  \"totven\": 59.47\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"codven\": 1,\n  \"codpro\": 2,\n  \"candetv\": 3,\n  \"preundetv\": 6.8,\n  \"subdetv\": 20.4\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().coddetv);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar venta (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/ventas/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar venta",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/ventas/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar detalle_venta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/detalles-venta"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar detalle_venta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/detalles-venta",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codven\": 1,\n  \"codpro\": 2,\n  \"candetv\": 3,\n  \"preundetv\": 6.8,\n  \"subdetv\": 20.4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_detalles_venta', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().coddetv));",
+                  "}"
                 ]
               }
             }
@@ -520,42 +1096,101 @@
           "name": "Buscar detalle_venta por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8093/api/detalles-venta/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/detalles-venta/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar detalle_venta",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8093/api/detalles-venta/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/detalles-venta/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"codven\": 1,\n  \"codpro\": 2,\n  \"candetv\": 4,\n  \"preundetv\": 6.8,\n  \"subdetv\": 27.2\n}"
+              "raw": "{\n  \"codven\": 1,\n  \"codpro\": 2,\n  \"candetv\": 4,\n  \"preundetv\": 6.8,\n  \"subdetv\": 27.2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar detalle_venta (Baja Logica)",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8093/api/detalles-venta/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/detalles-venta/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar detalle_venta",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8093/api/detalles-venta/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/detalles-venta/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -566,32 +1201,61 @@
           "name": "Listar proveedor",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8094/api/proveedores",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/proveedores"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar proveedor",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8094/api/proveedores",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/proveedores",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"razprv\": \"Nestl\\u00e9 Per\\u00fa S.A.\",\n  \"rucprv\": \"20100177260\",\n  \"telprv\": \"01-5111800\",\n  \"corprv\": \"ventas@pe.nestle.com\",\n  \"dirprv\": \"Av. Los Libertadores 214, Lima\"\n}"
+              "raw": "{\n  \"razprv\": \"Nestlé Perú S.A.\",\n  \"rucprv\": \"201{{u_proveedores}}\",\n  \"telprv\": \"01-5111800\",\n  \"corprv\": \"pa4.{{u_proveedores}}@example.com\",\n  \"dirprv\": \"Av. Los Libertadores 214, Lima\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_proveedores', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codprv);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codprv));",
+                  "}"
                 ]
               }
             }
@@ -601,73 +1265,161 @@
           "name": "Buscar proveedor por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8094/api/proveedores/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/proveedores/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar proveedor",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8094/api/proveedores/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/proveedores/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"razprv\": \"Nestl\\u00e9 Per\\u00fa S.A. Central\",\n  \"rucprv\": \"20100177260\",\n  \"telprv\": \"01-5111801\",\n  \"corprv\": \"contacto@pe.nestle.com\",\n  \"dirprv\": \"Av. Los Libertadores 220, Lima\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar proveedor (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8094/api/proveedores/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar proveedor",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8094/api/proveedores/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar orden_compra",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8094/api/ordenes-compra",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar orden_compra",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8094/api/ordenes-compra",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"razprv\": \"Nestlé Perú S.A. Central\",\n  \"rucprv\": \"201{{u_proveedores}}\",\n  \"telprv\": \"01-5111801\",\n  \"corprv\": \"pa4.{{u_proveedores}}@example.com\",\n  \"dirprv\": \"Av. Los Libertadores 220, Lima\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"numordc\": \"OC-2026-099\",\n  \"fecordc\": \"2026-11-26T09:00:00\",\n  \"codprv\": 1,\n  \"totordc\": 4500.0,\n  \"obsordc\": \"Compra de l\\u00e1cteos y derivados\"\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codordc);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar proveedor (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/proveedores/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar proveedor",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/proveedores/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar orden_compra",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/ordenes-compra"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar orden_compra",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/ordenes-compra",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numordc\": \"OC-{{u_ordenes_compra}}\",\n  \"fecordc\": \"2026-11-26T09:00:00\",\n  \"codprv\": 1,\n  \"totordc\": 4500,\n  \"obsordc\": \"Compra de lácteos y derivados\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_ordenes_compra', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codordc));",
+                  "}"
                 ]
               }
             }
@@ -677,42 +1429,101 @@
           "name": "Buscar orden_compra por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8094/api/ordenes-compra/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/ordenes-compra/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar orden_compra",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8094/api/ordenes-compra/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/ordenes-compra/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numordc\": \"OC-2026-099\",\n  \"fecordc\": \"2026-11-26T09:00:00\",\n  \"codprv\": 1,\n  \"totordc\": 5200.0,\n  \"obsordc\": \"Compra ampliada por alta demanda de fin de mes\"\n}"
+              "raw": "{\n  \"numordc\": \"OC-{{u_ordenes_compra}}\",\n  \"fecordc\": \"2026-11-26T09:00:00\",\n  \"codprv\": 1,\n  \"totordc\": 5200,\n  \"obsordc\": \"Compra ampliada por alta demanda de fin de mes\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar orden_compra (Baja Logica)",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8094/api/ordenes-compra/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/ordenes-compra/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar orden_compra",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8094/api/ordenes-compra/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/ordenes-compra/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -723,32 +1534,61 @@
           "name": "Listar despacho",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8095/api/despachos",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/despachos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar despacho",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8095/api/despachos",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/despachos",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"codped\": 3,\n  \"vehdes\": \"Furgoneta Renault Master Placa KLO-456\",\n  \"fecdes\": \"2026-11-26T14:00:00\",\n  \"dirent\": \"Calle Los Sauces 210, Surco\"\n}"
+              "raw": "{\n  \"codped\": 3,\n  \"vehdes\": \"Furgoneta Renault Master Placa KLO-456\",\n  \"fecdes\": \"2026-11-26T14:00:00\",\n  \"dirent\": \"Calle Los Sauces 210, Surco\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_despachos', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().coddes);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().coddes));",
+                  "}"
                 ]
               }
             }
@@ -758,73 +1598,161 @@
           "name": "Buscar despacho por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8095/api/despachos/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/despachos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar despacho",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8095/api/despachos/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/despachos/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"codped\": 3,\n  \"vehdes\": \"Furgoneta Renault Master Placa KLO-456\",\n  \"fecdes\": \"2026-11-26T14:30:00\",\n  \"dirent\": \"Calle Los Sauces 210 Dpto 401, Surco\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar despacho (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8095/api/despachos/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar despacho",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8095/api/despachos/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar almacen",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8095/api/almacenes",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar almacen",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8095/api/almacenes",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"codped\": 3,\n  \"vehdes\": \"Furgoneta Renault Master Placa KLO-456\",\n  \"fecdes\": \"2026-11-26T14:30:00\",\n  \"dirent\": \"Calle Los Sauces 210 Dpto 401, Surco\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nomalm\": \"Almac\\u00e9n L\\u00e1cteos San Miguel\",\n  \"ubialm\": \"Sector 4 - Estanter\\u00eda 12\",\n  \"codsuc\": 3\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codalm);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar despacho (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/despachos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar despacho",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/despachos/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar almacen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/almacenes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar almacen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/almacenes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomalm\": \"Almacén Lácteos San Miguel\",\n  \"ubialm\": \"Sector 4 - Estantería 12\",\n  \"codsuc\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_almacenes', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codalm));",
+                  "}"
                 ]
               }
             }
@@ -834,73 +1762,161 @@
           "name": "Buscar almacen por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8095/api/almacenes/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/almacenes/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar almacen",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8095/api/almacenes/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/almacenes/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomalm\": \"Almac\\u00e9n Central Refrigerados San Miguel\",\n  \"ubialm\": \"Sector 4 - M\\u00f3dulo Fr\\u00edo 1\",\n  \"codsuc\": 3\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar almacen (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8095/api/almacenes/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar almacen",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8095/api/almacenes/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar sucursal",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8095/api/sucursales",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar sucursal",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8095/api/sucursales",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"nomalm\": \"Almacén Central Refrigerados San Miguel\",\n  \"ubialm\": \"Sector 4 - Módulo Frío 1\",\n  \"codsuc\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nomsuc\": \"Sucursal Surco Higuereta\",\n  \"dirsuc\": \"Av. Aviaci\\u00f3n 4850, Surco\",\n  \"telsuc\": \"01-4482100\"\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codsuc);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar almacen (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/almacenes/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar almacen",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/almacenes/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar sucursal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/sucursales"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar sucursal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/sucursales",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomsuc\": \"Sucursal Surco Higuereta\",\n  \"dirsuc\": \"Av. Aviación 4850, Surco\",\n  \"telsuc\": \"01-4482100\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_sucursales', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codsuc));",
+                  "}"
                 ]
               }
             }
@@ -910,73 +1926,161 @@
           "name": "Buscar sucursal por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8095/api/sucursales/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/sucursales/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar sucursal",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8095/api/sucursales/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/sucursales/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomsuc\": \"Sucursal Santiago de Surco - Higuereta\",\n  \"dirsuc\": \"Av. Aviaci\\u00f3n 4850, Surco\",\n  \"telsuc\": \"01-4482101\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar sucursal (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8095/api/sucursales/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar sucursal",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8095/api/sucursales/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar inventario",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8095/api/inventarios",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar inventario",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8095/api/inventarios",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"nomsuc\": \"Sucursal Santiago de Surco - Higuereta\",\n  \"dirsuc\": \"Av. Aviación 4850, Surco\",\n  \"telsuc\": \"01-4482101\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"codpro\": 3,\n  \"codalm\": 2,\n  \"caninv\": 150\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codinv);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar sucursal (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/sucursales/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar sucursal",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/sucursales/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar inventario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/inventarios"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar inventario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/inventarios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codpro\": 3,\n  \"codalm\": 2,\n  \"caninv\": 150\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_inventarios', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codinv));",
+                  "}"
                 ]
               }
             }
@@ -986,42 +2090,101 @@
           "name": "Buscar inventario por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8095/api/inventarios/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/inventarios/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar inventario",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8095/api/inventarios/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/inventarios/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"codpro\": 3,\n  \"codalm\": 2,\n  \"caninv\": 140\n}"
+              "raw": "{\n  \"codpro\": 3,\n  \"codalm\": 2,\n  \"caninv\": 140\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar inventario (Baja Logica)",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8095/api/inventarios/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/inventarios/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar inventario",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8095/api/inventarios/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/inventarios/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -1032,32 +2195,61 @@
           "name": "Listar pago",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8096/api/pagos",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/pagos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar pago",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8096/api/pagos",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/pagos",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numpag\": \"PAG-2026-0999\",\n  \"codped\": 3,\n  \"codmetp\": 2,\n  \"monpag\": 35.05,\n  \"fecpag\": \"2026-11-26T15:00:00\"\n}"
+              "raw": "{\n  \"numpag\": \"PAG-{{u_pagos}}\",\n  \"codped\": 3,\n  \"codmetp\": 2,\n  \"monpag\": 35.05,\n  \"fecpag\": \"2026-11-26T15:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_pagos', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codpag);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codpag));",
+                  "}"
                 ]
               }
             }
@@ -1067,73 +2259,161 @@
           "name": "Buscar pago por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8096/api/pagos/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/pagos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar pago",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8096/api/pagos/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/pagos/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numpag\": \"PAG-2026-0999\",\n  \"codped\": 3,\n  \"codmetp\": 2,\n  \"monpag\": 35.05,\n  \"fecpag\": \"2026-11-26T15:10:00\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar pago (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8096/api/pagos/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar pago",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8096/api/pagos/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar metodopago",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8096/api/metodospago",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar metodopago",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8096/api/metodospago",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"numpag\": \"PAG-{{u_pagos}}\",\n  \"codped\": 3,\n  \"codmetp\": 2,\n  \"monpag\": 35.05,\n  \"fecpag\": \"2026-11-26T15:10:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nommetp\": \"Transferencia Bancaria BCP\"\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codmetp);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar pago (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/pagos/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar pago",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/pagos/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar metodopago",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/metodospago"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar metodopago",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/metodospago",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nommetp\": \"Transferencia Bancaria BCP {{u_metodospago}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_metodospago', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codmetp));",
+                  "}"
                 ]
               }
             }
@@ -1143,42 +2423,101 @@
           "name": "Buscar metodopago por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8096/api/metodospago/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/metodospago/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar metodopago",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8096/api/metodospago/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/metodospago/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nommetp\": \"Transferencia Interbancaria CCI\"\n}"
+              "raw": "{\n  \"nommetp\": \"Transferencia Interbancaria CC {{u_metodospago}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar metodopago (Baja Logica)",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8096/api/metodospago/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/metodospago/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar metodopago",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8096/api/metodospago/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/metodospago/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -1189,32 +2528,61 @@
           "name": "Listar empleado",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8097/api/empleados",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/empleados"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar empleado",
           "request": {
             "method": "POST",
-            "url": "http://localhost:8097/api/empleados",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/empleados",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numdoc\": \"49871236\",\n  \"nomemp\": \"Valeria Sofia\",\n  \"apeemp\": \"Castro Melendez\",\n  \"caremp\": \"Atenci\\u00f3n al Cliente\",\n  \"codsuc\": 1\n}"
+              "raw": "{\n  \"numdoc\": \"{{u_empleados}}\",\n  \"nomemp\": \"Valeria Sofia\",\n  \"apeemp\": \"Castro Melendez\",\n  \"caremp\": \"Atención al Cliente\",\n  \"codsuc\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_empleados', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codemp);"
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codemp));",
+                  "}"
                 ]
               }
             }
@@ -1224,73 +2592,161 @@
           "name": "Buscar empleado por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8097/api/empleados/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/empleados/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar empleado",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8097/api/empleados/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/empleados/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"numdoc\": \"49871236\",\n  \"nomemp\": \"Valeria Sofia\",\n  \"apeemp\": \"Castro Melendez\",\n  \"caremp\": \"Supervisora de Atenci\\u00f3n al Cliente\",\n  \"codsuc\": 1\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar empleado (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8097/api/empleados/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar empleado",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8097/api/empleados/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar usuario",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8097/api/usuarios",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar usuario",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8097/api/usuarios",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"numdoc\": \"{{u_empleados}}\",\n  \"nomemp\": \"Valeria Sofia\",\n  \"apeemp\": \"Castro Melendez\",\n  \"caremp\": \"Supervisora de Atención al Cliente\",\n  \"codsuc\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nomusu\": \"vcastro\",\n  \"clausu\": \"claveSegura2026!\",\n  \"codemp\": 1,\n  \"rolusu\": \"ASISTENTE\"\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codusu);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar empleado (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/empleados/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar empleado",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/empleados/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/usuarios"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/usuarios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomusu\": \"usuario{{u_usuarios}}\",\n  \"clausu\": \"claveSegura2026!\",\n  \"codemp\": 1,\n  \"rolusu\": \"ASISTENTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_usuarios', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codusu));",
+                  "}"
                 ]
               }
             }
@@ -1300,73 +2756,161 @@
           "name": "Buscar usuario por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8097/api/usuarios/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/usuarios/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar usuario",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8097/api/usuarios/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/usuarios/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nomusu\": \"vcastro\",\n  \"clausu\": \"claveSegura2026!Updated\",\n  \"codemp\": 1,\n  \"rolusu\": \"SUPERVISOR\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Deshabilitar usuario (Baja Logica)",
-          "request": {
-            "method": "DELETE",
-            "url": "http://localhost:8097/api/usuarios/{{id}}",
-            "header": []
-          }
-        },
-        {
-          "name": "Habilitar usuario",
-          "request": {
-            "method": "PATCH",
-            "url": "http://localhost:8097/api/usuarios/{{id}}/habilitar",
-            "header": []
-          }
-        },
-        {
-          "name": "Listar auditoria",
-          "request": {
-            "method": "GET",
-            "url": "http://localhost:8097/api/auditorias",
-            "header": []
-          }
-        },
-        {
-          "name": "Registrar auditoria",
-          "request": {
-            "method": "POST",
-            "url": "http://localhost:8097/api/auditorias",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "raw": "{\n  \"nomusu\": \"usuario{{u_usuarios}}\",\n  \"clausu\": \"claveSegura2026!Updated\",\n  \"codemp\": 1,\n  \"rolusu\": \"SUPERVISOR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"codusu\": 1,\n  \"accaud\": \"Registro manual de recepci\\u00f3n de mercader\\u00eda\",\n  \"fecaud\": \"2026-11-26T16:00:00\"\n}"
             }
           },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"id\", pm.response.json().codaud);"
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deshabilitar usuario (Baja Logica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{gateway}}/api/usuarios/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habilitar usuario",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway}}/api/usuarios/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar auditoria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/auditorias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar auditoria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/auditorias",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codusu\": 1,\n  \"accaud\": \"Registro manual de recepción de mercadería\",\n  \"fecaud\": \"2026-11-26T16:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_auditorias', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('id', String(pm.response.json().codaud));",
+                  "}"
                 ]
               }
             }
@@ -1376,42 +2920,722 @@
           "name": "Buscar auditoria por ID",
           "request": {
             "method": "GET",
-            "url": "http://localhost:8097/api/auditorias/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/auditorias/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Actualizar auditoria",
           "request": {
             "method": "PUT",
-            "url": "http://localhost:8097/api/auditorias/{{id}}",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
+            "url": "{{gateway}}/api/auditorias/{{id}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"codusu\": 1,\n  \"accaud\": \"Modificaci\\u00f3n de orden de despacho por cliente\",\n  \"fecaud\": \"2026-11-26T16:05:00\"\n}"
+              "raw": "{\n  \"codusu\": 1,\n  \"accaud\": \"Modificación de orden de despacho por cliente\",\n  \"fecaud\": \"2026-11-26T16:05:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Deshabilitar auditoria (Baja Logica)",
           "request": {
             "method": "DELETE",
-            "url": "http://localhost:8097/api/auditorias/{{id}}",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/auditorias/{{id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda deshabilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Habilitar auditoria",
           "request": {
             "method": "PATCH",
-            "url": "http://localhost:8097/api/auditorias/{{id}}/habilitar",
-            "header": []
-          }
+            "header": [],
+            "url": "{{gateway}}/api/auditorias/{{id}}/habilitar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Queda habilitado', function () {",
+                  "  const j = pm.response.json();",
+                  "  const campo = Object.keys(j).find(function (k) { return k.indexOf('est') === 0 && typeof j[k] === 'boolean'; });",
+                  "  pm.expect(j[campo]).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OpenFeign",
+      "item": [
+        {
+          "name": "Venta (Ventas consulta Cliente)",
+          "item": [
+            {
+              "name": "1. Dato valido (201)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/ventas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"numcom\": \"B-{{u_feign}}\",\n  \"fecven\": \"2026-11-27T12:00:00\",\n  \"codcli\": 1,\n  \"codemp\": 2,\n  \"codmetp\": 1,\n  \"totven\": 49.56\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', function () { pm.response.to.have.status(201); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Dato inexistente (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/ventas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"numcom\": \"B-{{u_feign}}\",\n  \"fecven\": \"2026-11-27T12:00:00\",\n  \"codcli\": 999999,\n  \"codemp\": 2,\n  \"codmetp\": 1,\n  \"totven\": 49.56\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3. Deshabilitar el dato consultado",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{gateway}}/api/clientes/2"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "4. Intentar con el dato deshabilitado (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/ventas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"numcom\": \"B-{{u_feign}}\",\n  \"fecven\": \"2026-11-27T12:00:00\",\n  \"codcli\": 2,\n  \"codemp\": 2,\n  \"codmetp\": 1,\n  \"totven\": 49.56\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "5. Volver a habilitar",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{gateway}}/api/clientes/2/habilitar"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Detalle de venta (Ventas consulta Producto)",
+          "item": [
+            {
+              "name": "1. Dato valido (201)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/detalles-venta",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codven\": 1,\n  \"codpro\": 1,\n  \"candetv\": 1,\n  \"preundetv\": 6.8,\n  \"subdetv\": 6.8\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', function () { pm.response.to.have.status(201); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Dato inexistente (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/detalles-venta",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codven\": 1,\n  \"codpro\": 999999,\n  \"candetv\": 1,\n  \"preundetv\": 6.8,\n  \"subdetv\": 6.8\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3. Deshabilitar el dato consultado",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{gateway}}/api/productos/2"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "4. Intentar con el dato deshabilitado (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/detalles-venta",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codven\": 1,\n  \"codpro\": 2,\n  \"candetv\": 1,\n  \"preundetv\": 6.8,\n  \"subdetv\": 6.8\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "5. Volver a habilitar",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{gateway}}/api/productos/2/habilitar"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Pago (Pagos consulta Ventas)",
+          "item": [
+            {
+              "name": "1. Dato valido (201)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/pagos",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"numpag\": \"PAG-{{u_feign}}\",\n  \"codped\": 1,\n  \"codmetp\": 1,\n  \"monpag\": 1,\n  \"fecpag\": \"2026-11-27T15:00:00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', function () { pm.response.to.have.status(201); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "2. Dato inexistente (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/pagos",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"numpag\": \"PAG-{{u_feign}}\",\n  \"codped\": 999999,\n  \"codmetp\": 1,\n  \"monpag\": 1,\n  \"fecpag\": \"2026-11-27T15:00:00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3. Deshabilitar el dato consultado",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{gateway}}/api/pedidos/2"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "4. Intentar con el dato deshabilitado (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{gateway}}/api/pagos",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"numpag\": \"PAG-{{u_feign}}\",\n  \"codped\": 2,\n  \"codmetp\": 1,\n  \"monpag\": 1,\n  \"fecpag\": \"2026-11-27T15:00:00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "5. Volver a habilitar",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{gateway}}/api/pedidos/2/habilitar"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Manejo de errores",
+      "item": [
+        {
+          "name": "Cliente que no existe (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/clientes/999999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Producto que no existe (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway}}/api/productos/999999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Stock insuficiente (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/detalles-venta",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codven\": 1,\n  \"codpro\": 1,\n  \"candetv\": 1000000,\n  \"preundetv\": 6.8,\n  \"subdetv\": 6.8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pago mayor al total del pedido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway}}/api/pagos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numpag\": \"PAG-{{u_feign}}\",\n  \"codped\": 1,\n  \"codmetp\": 1,\n  \"monpag\": 999999,\n  \"fecpag\": \"2026-11-27T15:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('u_feign', String(Math.floor(10000000 + Math.random() * 90000000)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     }
