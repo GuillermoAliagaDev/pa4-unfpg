@@ -54,6 +54,11 @@ public class GlobalExceptionHandler {
     }
 
     // 500 - Cualquier otro error no controlado
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleBody(Exception ex, WebRequest request) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST,"Cuerpo JSON obligatorio o invalido",request,null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneral(Exception ex, WebRequest request) {
         return construirRespuesta(HttpStatus.INTERNAL_SERVER_ERROR,
