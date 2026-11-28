@@ -1,4 +1,14 @@
 package pe.edu.isil.unfpg_academico_service;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-@SpringBootApplication public class Application { public static void main(String[] args) { SpringApplication.run(Application.class,args); } }
+import org.springframework.cloud.openfeign.EnableFeignClients;
+
+@SpringBootApplication
+@EnableFeignClients
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
