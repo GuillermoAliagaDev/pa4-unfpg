@@ -16,12 +16,26 @@ public class PrestamolibroController {
 
     private final PrestamolibroRepository repo;
     private final PersonaClient personaClient;
+    private final EjemplarlibroRepository ejemplares;
 
     public PrestamolibroController(
             PrestamolibroRepository repo,
-            PersonaClient personaClient) {
+            PersonaClient personaClient, EjemplarlibroRepository ejemplares) {
+        this.ejemplares=ejemplares;
         this.repo = repo;
         this.personaClient = personaClient;
+    }
+
+    @PatchMapping("/{id}/devolver")
+    @org.springframework.transaction.annotation.Transactional
+    public Prestamolibro devolver(@PathVariable Integer id) {
+        var actual = repo.bloquear(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Prestamo no encontrado"));
+        if (!Boolean.TRUE.equals(actual.estpre) || Boolean.TRUE.equals(actual.devpre) || !(java.util.Objects.equals(actual.codestl,1) || java.util.Objects.equals(actual.codestl,3)))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Prestamo no disponible para devolucion");
+        var ejemplar = ejemplares.findById(actual.codeje).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Ejemplar no encontrado"));
+        actual.devpre=true; actual.fecdpre=java.time.LocalDate.now(); actual.codestl=2;
+        ejemplar.estadoeje="DISPONIBLE"; ejemplares.save(ejemplar);
+        return repo.save(actual);
     }
 
     @GetMapping
@@ -39,7 +53,7 @@ public class PrestamolibroController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Prestamolibro crear(@RequestBody Prestamolibro body) {
+    public Prestamolibro crear(@jakarta.validation.Valid @RequestBody Prestamolibro body) {
 
         validarAlumno(body.codalu);
 
@@ -52,7 +66,7 @@ public class PrestamolibroController {
     @PutMapping("/{id}")
     public Prestamolibro actualizar(
             @PathVariable Integer id,
-            @RequestBody Prestamolibro body) {
+            @jakarta.validation.Valid @RequestBody Prestamolibro body) {
 
         var actual = buscar(id);
 

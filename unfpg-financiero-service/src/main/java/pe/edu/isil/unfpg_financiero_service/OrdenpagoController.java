@@ -24,6 +24,12 @@ public class OrdenpagoController {
         this.academicoClient = academicoClient;
     }
 
+    @GetMapping("/deuda/{nummat}")
+    public java.util.Map<String,Object> deuda(@PathVariable Integer nummat) {
+        validarMatricula(nummat);
+        return java.util.Map.of("nummat", nummat, "deuda", repo.calcularDeuda(nummat));
+    }
+
     @GetMapping
     public List<Ordenpago> listar() {
         return repo.findAll();
